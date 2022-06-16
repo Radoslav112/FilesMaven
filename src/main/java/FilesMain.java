@@ -42,8 +42,8 @@ public class FilesMain {
         text = generateText.getText();
 
         //read from file
-        fileWorker.WriteToFile(text);
-        List<String> words = fileWorker.ReadFromFile();
+        fileWorker.writeToFile(text);
+        List<String> words = fileWorker.readFromFile();
 
         //add words from list to model for easier word
         WordsInFile wordsInFile = new WordsInFile();
@@ -52,7 +52,7 @@ public class FilesMain {
             wordsInFile.add(word);
         }
 
-        wordsInFile.Sort();//sort words in model
-        wordsInFile.Print();//print sorted words from model
+        wordsInFile.sort();//sort words in model
+        wordsInFile.print();//print sorted words from model
     }
 }

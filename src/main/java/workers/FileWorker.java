@@ -50,7 +50,7 @@ public class FileWorker {
      * Write text to file
      * @param text text to be written in file
      */
-    public void WriteToFile(String text) {
+    public void writeToFile(String text) {
         Properties props = new Properties();
         try {
             props.load(new FileInputStream("src/main/resources/log4j.properties"));
@@ -88,7 +88,7 @@ public class FileWorker {
      * @return List of words read from file
      * @throws FileNotFoundException
      */
-    public List<String> ReadFromFile() {
+    public List<String> readFromFile() {
         List<String> words = new ArrayList<>();
         Properties props = new Properties();
         try {

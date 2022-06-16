@@ -26,7 +26,7 @@ public class WordsInFile {
         return words;
     }
 
-    public void Sort(){
+    public void sort(){
         List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(words.entrySet());
         list.sort(new Comparator<Map.Entry<String, Integer>>() {
             public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
@@ -41,7 +41,7 @@ public class WordsInFile {
         }
     }
 
-    public void Print(){
+    public void print(){
         Properties props = new Properties();
         try {
             props.load(new FileInputStream("src/main/resources/log4j.properties"));
