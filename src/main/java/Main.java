@@ -1,16 +1,21 @@
-import datasource.GenerateText;
-import models.WordsInFile;
+import features.fileFeature.datasource.GenerateText;
+import features.fileFeature.models.WordsInFile;
+import features.stringCalculatorFeature.StringCalculator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import workers.FileWorker;
+import features.fileFeature.workers.FileWorker;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-public class FilesMain {
+public class Main {
     public static void main(String[] args) {
+        System.out.println(StringCalculator.add(""));
+    }
+
+    private void fileFunction(){
         Properties props = new Properties();
         try {
             props.load(new FileInputStream("src/main/resources/log4j.properties"));
@@ -19,7 +24,7 @@ public class FilesMain {
         }
         PropertyConfigurator.configure(props);
 
-        Logger logger = Logger.getLogger(FilesMain.class);
+        Logger logger = Logger.getLogger(Main.class);
         logger.info("Main");
 
         //create file

@@ -1,4 +1,4 @@
-package datasource;
+package features.fileFeature.datasource;
 
 import org.apache.commons.lang3.RandomStringUtils;
 

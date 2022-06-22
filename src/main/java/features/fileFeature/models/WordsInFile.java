@@ -1,8 +1,7 @@
-package models;
+package features.fileFeature.models;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import workers.FileWorker;
 
 import java.io.FileInputStream;
 import java.io.IOException;
