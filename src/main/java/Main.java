@@ -1,6 +1,5 @@
 import features.fileFeature.datasource.GenerateText;
 import features.fileFeature.models.WordsInFile;
-import features.stringCalculatorFeature.StringCalculator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import features.fileFeature.workers.FileWorker;
@@ -12,7 +11,7 @@ import java.util.Properties;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println(StringCalculator.add(""));
+
     }
 
     private void fileFunction(){

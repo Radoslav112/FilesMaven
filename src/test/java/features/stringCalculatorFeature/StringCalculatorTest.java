@@ -18,4 +18,9 @@ public class StringCalculatorTest extends TestCase {
         assertEquals("6.0",StringCalculator.add("1\n2,3"));
         assertEquals("Number expected but '\\n' found at position 6.",StringCalculator.add("175.2,\n35"));
     }
+
+
+    public void testMissingNumberInLastPosition() {
+        assertEquals("Number expected but EOF found.",StringCalculator.add("1,3,"));
+    }
 }
