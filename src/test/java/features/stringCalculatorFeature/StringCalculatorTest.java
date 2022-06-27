@@ -23,4 +23,15 @@ public class StringCalculatorTest extends TestCase {
     public void testMissingNumberInLastPosition() {
         assertEquals("Number expected but EOF found.",StringCalculator.add("1,3,"));
     }
+
+
+    public void testCustomSeparator() {
+        assertEquals("3.0",StringCalculator.add("//;\\n1;2"));
+        assertEquals("6.0",StringCalculator.add("//|\\n1|2|3"));
+        assertEquals("5.0",StringCalculator.add("//sep\\n2sep3"));
+        assertEquals("'|' expected but ',' found at position 3.",StringCalculator.add("//|\\n1|2,3"));
+    }
+
+    public void testNegativeNumbers() {
+    }
 }
