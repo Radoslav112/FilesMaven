@@ -20,12 +20,12 @@ public class StringCalculator {
                 } else if(isNumberNegarive(num)){
                         return String.format("Negative not allowed : %f",Double.parseDouble(num));
                     }
-                }
                 res += Double.parseDouble(num);
-            }
+                }
             return String.valueOf(res);
+            }
         }
-    }
+
 
     private static int isNumberMissed(String number){
         if(number.contains(",\n")){
