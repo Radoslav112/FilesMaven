@@ -25,26 +25,70 @@ public class StringCalculator {
 
         double res=0;
         String regex = getRegex(number);
+        String sep = null;
         if(number.contains("//")){
+            sep = getCustomSeparator(number);
             number = number.substring( number.indexOf("\\n")+2);//delimiter will be removed from number
         }
+
         String arr[] = number.split(regex);
         for(String num : arr){
-            if(!isNumeric(num)) { // have to check if number contains only defined seperators else err
-                return /*String.format*/("'%s' expected but '%s' found at position %d.");
+            if(isNegative(num)){
+                return "Negative not allowed : " + getAllNegatives(arr);
             }
-            if(isNumberNegative(num)){
-                return "Negative not allowed : " + num;
+            if(!isNumeric(num)) { // have to check if number contains only defined seperators else err
+                String unexpectedChar = findUnexpectedChar(num);
+                int pos = findUnexpectedCharPosition(number, unexpectedChar);
+                return String.format("'%s' expected but '%s' found at position %d.",sep,unexpectedChar,pos);
             }
             res += Double.parseDouble(num);
         }
         return String.valueOf(res);
     }
 
+    private static String getAllNegatives(String[] numbers) {
+        String res = "";
+        for (String num:numbers){
+            if(isNegative(num)&&res.equals("")){
+                res += num;
+            }
+            else if(isNegative(num)){
+                res += ", ".concat(num);
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * Return position of unexpected character in formatted string filled with numbers
+     * @param number Formatted string filled with numbers, may contain custom separator
+     * @param unexpectedChar String representing the unexpected character
+     * @return Return position of unexpected character
+     */
+    private static int findUnexpectedCharPosition(String number, String unexpectedChar) {
+        return number.indexOf(unexpectedChar);
+    }
+
+    /**
+     * Returns unexpected character in formatted string filled with numbers
+     * @param number Formatted string filled with numbers, may contain custom separator
+     * @return String representing the unexpected character
+     */
+    private static String findUnexpectedChar(String number) {
+        String arr[] = number.split("");
+        for(String s: arr){
+            if(!isNumeric(s)){
+                return s;
+            }
+        }
+        return null;
+    }
+
     /**
      * Returns code if number is missed
      * @param number Formatted string filled with numbers, may contain custom separator
-     * @return
+     * @return Code representing is end of line detected or comma detected inste
      */
     private static int isNumberMissed(String number){
         if(number.contains(",\n")){
@@ -74,15 +118,6 @@ public class StringCalculator {
         int endOfSep = number.indexOf("\\n");//will return first occurred '\n'
         int begOfSep = number.indexOf("//")+2;
         return number.substring(begOfSep,endOfSep);
-    }
-
-    /**
-     * Returns true if given number is negative
-     * @param number Number to be checked
-     * @return  Return true if number is negative or false if number is positive
-     */
-    private static boolean isNumberNegative(String number){
-        return Double.parseDouble(number)<0;
     }
 
     /**
@@ -116,14 +151,10 @@ public class StringCalculator {
      * @return Return true if variable is numeric else return false
      */
     private static boolean isNumeric(String number){
-        if (number == null) {
-            return false;
-        }
-        try {
-            double d = Double.parseDouble(number);
-        } catch (NumberFormatException exception) { // if there is exception then it means the String is not numeric
-            return false;
-        }
-        return true;
+        return number.matches("\\d+?\\.?\\d*");
+    }
+
+    private static boolean isNegative(String number){
+        return number.startsWith("-");
     }
 }
