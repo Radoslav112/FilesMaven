@@ -1,6 +1,12 @@
 package features.stringCalculatorFeature;
 
-import static features.stringCalculatorFeature.helpers.Constants.*;
+import features.stringCalculatorFeature.helpers.Error;
+import features.stringCalculatorFeature.helpers.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static features.stringCalculatorFeature.helpers.Error.*;
 
 public class StringCalculator {
 
@@ -13,61 +19,64 @@ public class StringCalculator {
         if(number.isEmpty()) {
             return "0";
         }
-        if(isLastNumberEmpty(number)) {
-            return "Number expected but EOF found.";
-        }
-        if(isNumberMissed(number)==MISSED_NUMBER_END_LINE_FOUND) {
-            return String.format("Number expected but '\\n' found at position %d.",number.indexOf(",\n")+1);
-        }
-        if(isNumberMissed(number)==MISSED_NUMBER_COMMA_FOUND) {
-            return String.format("Number expected but ',' found at position %d.",number.indexOf("\n,")+1);
-        }
 
-        double res=0;
         String regex = getRegex(number);
         String sep = null;
+        double res=0;
+        String errorMessage = "";
         if(number.contains("//")){
             sep = getCustomSeparator(number);
             number = number.substring( number.indexOf("\\n")+2);//delimiter will be removed from number
         }
 
-        String arr[] = number.split(regex);
+        List<String> arr = List.of(number.split(regex));
+        List<Pair<Error,String>> errors = new ArrayList<>();
         for(String num : arr){
-            if(isNegative(num)){
-                return "Negative not allowed : " + getAllNegatives(arr);
-            }
-            if(!isNumeric(num)) { // have to check if number contains only defined seperators else err
-                String unexpectedChar = findUnexpectedChar(num);
-                int pos = findUnexpectedCharPosition(number, unexpectedChar);
-                return String.format("'%s' expected but '%s' found at position %d.",sep,unexpectedChar,pos);
-            }
-            res += Double.parseDouble(num);
-        }
-        return String.valueOf(res);
-    }
-
-    private static String getAllNegatives(String[] numbers) {
-        String res = "";
-        for (String num:numbers){
-            if(isNegative(num)&&res.equals("")){
-                res += num;
-            }
-            else if(isNegative(num)){
-                res += ", ".concat(num);
+            Error  err = checkForErrors(number,num);
+            if(err==NO_ERROR){
+                res += Double.parseDouble(num);
+            } else {
+                errors.add(new Pair<>(err,num));
             }
         }
 
-        return res;
+        if(errors.isEmpty()){
+            return String.valueOf(res);
+        }
+
+        errorMessage = setErrorMsg(errors,number,sep).toString();
+
+        return errorMessage;
     }
 
-    /**
-     * Return position of unexpected character in formatted string filled with numbers
-     * @param number Formatted string filled with numbers, may contain custom separator
-     * @param unexpectedChar String representing the unexpected character
-     * @return Return position of unexpected character
-     */
-    private static int findUnexpectedCharPosition(String number, String unexpectedChar) {
-        return number.indexOf(unexpectedChar);
+    private static Error checkForErrors(String number, String num) {
+        if(isNegative(num)){
+            return NEGATIVE_NOT_ALLOWED;
+        } else if(isNumberMissed(num, number)==MISSED_NUMBER_END_LINE_FOUND) {
+            return MISSED_NUMBER_END_LINE_FOUND;
+        } else if(isNumberMissed(num, number)==MISSED_NUMBER_COMMA_FOUND) {
+            return MISSED_NUMBER_COMMA_FOUND;
+        } else if(!isNumeric(num)) {
+            return UNEXPECTED_CHAR;
+        } else if(isLastNumberEmpty(number)) {
+            return  UNEXPECTED_EOF;
+        }  else {
+            return NO_ERROR;
+        }
+    }
+
+    private static int getIndexOfUnexpectedNewLine(String number) {
+        if(number.contains(",\n")){
+            return number.indexOf(",\n")+1;
+        }
+        return number.indexOf("\n\n")+1;
+    }
+
+    private static int getIndexOfUnexpectedComma(String number) {
+        if(number.contains("\n,")){
+            return number.indexOf("\n,")+1;
+        }
+        return number.indexOf(",,")+1;
     }
 
     /**
@@ -90,14 +99,16 @@ public class StringCalculator {
      * @param number Formatted string filled with numbers, may contain custom separator
      * @return Code representing is end of line detected or comma detected inste
      */
-    private static int isNumberMissed(String number){
-        if(number.contains(",\n")){
-            return MISSED_NUMBER_END_LINE_FOUND;
-        } else if(number.contains("\n,")){
-            return MISSED_NUMBER_COMMA_FOUND;
+    private static Error isNumberMissed(String num, String number){
+        if(num.isEmpty()){
+            if(number.contains(",\n")||number.contains("\n\n")){
+                return MISSED_NUMBER_END_LINE_FOUND;
+            } else if(number.contains("\n,")||number.contains(",,")){
+                return MISSED_NUMBER_COMMA_FOUND;
+            }
         }
 
-        return NO_MISSED_NUMBER;
+        return NO_ERROR;
     }
 
     /**
@@ -157,4 +168,78 @@ public class StringCalculator {
     private static boolean isNegative(String number){
         return number.startsWith("-");
     }
+
+    private static StringBuilder setErrorMsg(List<Pair<Error,String>> errors,String number,String sep){
+        Error lastError = null;
+        StringBuilder errorMsg = new StringBuilder();
+        boolean isUnexpectedEOFAdded = false; // if unexpected end of file error is added to error message the flag will be true and it will not add to the message again
+        for(Pair<Error,String> pair : errors){
+
+            switch (pair.getL()){
+                case UNEXPECTED_EOF:
+                    if(!isUnexpectedEOFAdded){
+                        errorMsg = setMsg(errorMsg, new StringBuilder("Number expected but EOF found."),true);
+                        isUnexpectedEOFAdded = true;
+                    }
+
+                    lastError=UNEXPECTED_EOF;
+                    break;
+                case NEGATIVE_NOT_ALLOWED:
+                    if(lastError==NEGATIVE_NOT_ALLOWED){
+                        errorMsg = setMsg(errorMsg, new StringBuilder(", ").append(pair.getR()) ,false);
+                    } else {
+                        errorMsg = setMsg(errorMsg, new StringBuilder("Negative not allowed : ").append(pair.getR()) ,true);
+                    }
+
+                    lastError=NEGATIVE_NOT_ALLOWED;
+                    break;
+                case MISSED_NUMBER_END_LINE_FOUND:
+                    errorMsg = setMsg(errorMsg, new StringBuilder("Number expected but '\\n' found at position ").append(getIndexOfUnexpectedNewLine(number)) ,true).append(".");
+
+                    lastError=MISSED_NUMBER_END_LINE_FOUND;
+                    break;
+                case UNEXPECTED_CHAR:
+
+                    String unexpectedChar = findUnexpectedChar(pair.getR());
+                    int pos = number.indexOf(unexpectedChar);
+
+                    errorMsg = setMsg(errorMsg, new StringBuilder("'").append(sep).append("' expected but '").append(unexpectedChar).append("' found at position ").append(pos).append(".") ,true);
+
+
+                    lastError=UNEXPECTED_CHAR;
+                    break;
+                case MISSED_NUMBER_COMMA_FOUND:
+                    errorMsg = setMsg(errorMsg, new StringBuilder("Number expected but ',' found at position ").append(getIndexOfUnexpectedComma(number)).append("."),true);
+
+                    lastError=MISSED_NUMBER_COMMA_FOUND;
+                    break;
+                case MISSED_NUMBER_CUSTOM_SEP_FOUND:
+                    errorMsg = setMsg(errorMsg, new StringBuilder("Number expected but '").append(sep).append("' found at position ").append(getIndexOfUnexpectedCustomSep(number,sep)).append("."),true);
+
+                    lastError=MISSED_NUMBER_CUSTOM_SEP_FOUND;
+                    break;
+            }
+        }
+
+        return errorMsg;
+    }
+
+    private static int getIndexOfUnexpectedCustomSep(String number, String sep) {
+        return number.indexOf(sep+sep)+sep.length()+1;
+    }
+
+
+    private static StringBuilder setMsg(StringBuilder errors, StringBuilder message, boolean newLine){
+
+        if(errors.isEmpty()) {
+            errors = errors.append(message);
+        } else if(newLine) {
+            errors = errors.append("\n").append(message) ;
+        } else {
+            errors = errors.append(message);
+        }
+
+        return errors;
+    }
 }
+
